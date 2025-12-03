@@ -52,7 +52,7 @@ VALUES
 	('Research Scientist', 'Master''s', 'Low', 96690, 19, 0.89, 1.28, 0.21, 0.08, 0.16, 0.9, 0.61, 0.01, 0.1, 0.66, 0.01, 0.16, 0.55),
 	('Graphic Designer', 'High School', 'Medium', 32869, 2, 0.65, 0.72, 0.58, 0.24, 0.33, 0.75, 0.65, 0.85, 0.66, 0.57, 0.09, 0.37, 0.27),
 	('Teacher', 'Bachelor''s', 'Low', 36893, 29, 0.97, 0.89, 0.27, 0.63, 0.79, 0.5, 0.58, 0.49, 0.2, 0.72, 0.28, 0.02, 0.65),
-	('Teacher', 'Bachelor''s', 'Low', 103744, 11, 0.94, 1.45, 0.28, 0.37, 0.02, 0.93, 0.43, 0.97, 0.96, 0.85, 0.29, 0.39, 0.85);
+	('Teacher', 'Bachelor''s', 'Low', 103744, 11, 0.94, 1.45, 0.28, 0.37, 0.02, 0.93, 0.43, 0.97, 0.96, 0.85, 0.29, 0.39, 0.85),
 	('Retail Worker', 'PhD', 'High', 148015, 2, 0.17, 1.06, 0.93, 0.7, 0.57, 0.1, 0.62, 0.99, 0.14, 0.52, 0.88, 0.74, 0.7),
 	('Doctor', 'Master''s', 'Low', 108069, 15, 0.55, 0.8, 0.15, 0.26, 0.61, 0.08, 0.01, 0.63, 0.19, 0.07, 0.4, 0.05, 0.89),
 	('AI Engineer', 'High School', 'Low', 43403, 1, 0.09, 1.08, 0.06, 0.47, 0.54, 0.29, 0.59, 0.03, 0.04, 0.82, 0.36, 0.13, 0.52),
@@ -3036,8 +3036,9 @@ VALUES
 	('Graphic Designer', 'PhD', 'Medium', 110296, 7, 0.95, 1.23, 0.46, 0.21, 0.18, 0.14, 0.22, 0.55, 0.68, 0.31, 0.55, 0.34, 0.7),
 	('Graphic Designer', 'PhD', 'Medium', 123909, 25, 0.69, 0.56, 0.49, 0.77, 0.54, 0.95, 0.05, 0.29, 0.22, 0.77, 0.52, 0.14, 0.29);
 
+TRUNCATE TABLE esco_occupations;
 
-CREATE TABLE esco_occupations (
+CREATE TABLE esco_occupation (
     conceptType VARCHAR(50),
     conceptUri VARCHAR(255),
     iscoGroup INT,
@@ -3054,6 +3055,13 @@ CREATE TABLE esco_occupations (
     code VARCHAR(50)
 );
 
-INSERT INTO sql_project.esco_occupations
-(conceptType, conceptUri, iscoGroup, preferredLabel, altLabels, hiddenLabels, status, modifiedDate, regulatedProfessionNote, scopeNote, definition, inScheme, description, code)
-VALUES
+TRUNCATE TABLE esco_occupation;
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 9.5/Uploads/occupations_en.csv'
+INTO TABLE esco_occupation
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\r\n'  
+IGNORE 1 ROWS;
+
+SELECT COUNT(*) FROM esco_occupation;
+
