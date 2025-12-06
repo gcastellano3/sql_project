@@ -1,11 +1,10 @@
--- Database creation --
-
+-- Creación de base de datos
 CREATE DATABASE sql_project;
 
+-- Elección de base de datos
 USE sql_project;
 
-DROP TABLE IF EXISTS sql_project.impacto_ia_empleos;
-
+-- Creación de tabla de impacto de la inteligencia artificial en los empleos e inserción de datos
 CREATE TABLE impacto_ia_empleos (
     -- Datos de Identificación y Categorización
     Job_Title VARCHAR(25), -- Usamos el título como clave principal si es único para el análisis
@@ -30,8 +29,6 @@ CREATE TABLE impacto_ia_empleos (
     Skill_9 DECIMAL(3, 2),
     Skill_10 DECIMAL(3, 2)
 );
-
-DROP TABLE IF EXISTS impacto_ia_empleos;
 
 INSERT INTO sql_project.impacto_ia_empleos
 (Job_Title, Education_Level, Risk_Category, Average_Salary, Years_Experience, AI_Exposure_Index, Tech_Growth_Factor, Automation_Probability_2030, Skill_1, Skill_2, Skill_3, Skill_4, Skill_5, Skill_6, Skill_7, Skill_8, Skill_9, Skill_10)
@@ -3037,6 +3034,7 @@ VALUES
 	('Graphic Designer', 'PhD', 'Medium', 110296, 7, 0.95, 1.23, 0.46, 0.21, 0.18, 0.14, 0.22, 0.55, 0.68, 0.31, 0.55, 0.34, 0.7),
 	('Graphic Designer', 'PhD', 'Medium', 123909, 25, 0.69, 0.56, 0.49, 0.77, 0.54, 0.95, 0.05, 0.29, 0.22, 0.77, 0.52, 0.14, 0.29);
 
+-- Creación de tabla para las ocupaciones de ESCO e insertamos datos en la misma
 CREATE TABLE esco_occupation (
     conceptType VARCHAR(50),
     conceptUri VARCHAR(255),
@@ -3061,6 +3059,48 @@ ENCLOSED BY '\"'
 LINES TERMINATED BY '\r\n'  
 IGNORE 1 ROWS;
 
-SELECT * FROM esco_occupation;
+DROP TABLE IF EXISTS isco_groups;
 
-SELECT * FROM impacto_ia_empleos;
+-- Creación de tabla para los grupos que se asocian a ESCO e insertamos los datos
+CREATE TABLE isco_groups (
+	conceptType TEXT,
+    conceptUri TEXT,
+    iscoGroup INT PRIMARY KEY,
+    preferredLabel TEXT,
+    status TEXT,
+    altLabels TEXT,
+    inScheme TEXT,
+    description TEXT,
+);
+
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 9.5/Uploads/isco_groups.csv'
+INTO TABLE isco_groups
+FIELDS TERMINATED BY ','
+ENCLOSED BY '\"'
+LINES TERMINATED BY '\r\n'  
+IGNORE 1 ROWS;
+
+-- Asociación de foreign key para iscoGroup en la table de ocupaciones
+ALTER TABLE esco_occupation
+ADD CONSTRAINT fk_esco_occupation_iscogroup
+FOREIGN KEY (iscoGroup)
+REFERENCES isco_groups (iscoGroup);
+
+-- Creación de tabla diccionario para la clasificación de tipos de empleos
+CREATE TABLE isco_classification (
+	iscoID INT PRIMARY KEY,
+	iscoName TEXT
+);
+
+INSERT INTO sql_project.isco_classification
+(iscoID, iscoName)
+VALUES
+	(1, 'Directores y gerentes'),
+	(2, 'Profesionales científicos e intelectuales'),
+	(3, 'Técnicos y profesionales de nivel medio'),
+	(4, 'Personal de apoyo administrativo'),
+	(5, 'Trabajadores de los servicios y vendedores de comercios y mercados'),
+	(6, 'Agricultores y trabajadores calificados agropecuarios, forestales y pesqueros'),
+	(7, 'Oficiales, operarios y artesanos de artes mecánicas y de otros oficios'),
+	(8, 'Operadores de instalaciones y máquinas y ensambladores'),
+	(9, 'Ocupaciones elementales');

@@ -34,6 +34,8 @@ GROUP BY
     Grupo_Principal
 ORDER BY 
     Total_Por_Grupo DESC;
+
+SELECT * FROM isco_groups;
     
  -- PreferredLabel y altLabels    
 SELECT 
@@ -255,6 +257,22 @@ ON
 
 -- UNIÓN TABLAS Y CÁLCULO DEL RIESGO PROMEDIO POR GRUPO ISCO
 
+SELECT 
+    T1.Job_Title,
+    T2.preferredLabel,
+    T2.iscoGroup,
+    T1.AI_Exposure_Index,
+    T1.Automation_Probability_2030,
+    T1.Risk_Category,
+    T1.Average_Salary
+FROM 
+    impacto_ia_empleos AS T1
+INNER JOIN 
+    esco_occupation AS T2
+ON 
+    LOWER(T1.Job_Title) LIKE CONCAT('%', LOWER(T2.preferredLabel), '%');
+
+
 WITH CombinedData AS (
     SELECT
         T1.Job_Title,
@@ -304,4 +322,62 @@ GROUP BY
     T1.Education_Level
 ORDER BY
     Avg_AI_Exposure DESC;
+
+
+
+
+
+--  --------------------------------------------
+
+WITH Matches AS (
+    SELECT 
+        T1.Job_Title,
+        T2.preferredLabel,
+        T2.iscoGroup,
+        T1.AI_Exposure_Index,
+        T1.Automation_Probability_2030,
+        T1.Risk_Category,
+        T1.Average_Salary,
+        -- Primera palabra de preferredLabel
+        SUBSTRING_INDEX(T2.preferredLabel, ' ', 1) AS first_word
+    FROM 
+        impacto_ia_empleos AS T1
+    INNER JOIN 
+        esco_occupation AS T2
+    ON 
+        LOWER(T1.Job_Title) LIKE CONCAT('%', LOWER(SUBSTRING_INDEX(T2.preferredLabel, ' ', 1)), '%')
+),
+BestMatch AS (
+    -- Seleccionamos solo una coincidencia por Job_Title
+    SELECT *
+    FROM Matches m1
+    WHERE first_word = (
+        SELECT first_word
+        FROM Matches m2
+        WHERE m2.Job_Title = m1.Job_Title
+        LIMIT 1
+    )
+),
+Aggregated AS (
+    -- Calculamos promedios por grupo ISCO de un dígito
+    SELECT
+        SUBSTRING(CAST(iscoGroup AS CHAR), 1, 1) AS ISCO_Group_1D,
+        AVG(AI_Exposure_Index) AS Avg_AI_Exposure,
+        AVG(Automation_Probability_2030) AS Avg_Automation_Probability,
+        AVG(Average_Salary) AS Avg_Salary,
+        COUNT(*) AS Num_Jobs
+    FROM BestMatch
+    GROUP BY ISCO_Group_1D
+)
+-- Unimos con la tabla de nombres de ISCO
+SELECT
+    IC.iscoName AS ISCO_Group_Name,
+    A.Avg_AI_Exposure,
+    A.Avg_Automation_Probability,
+    A.Avg_Salary,
+    A.Num_Jobs
+FROM Aggregated AS A
+LEFT JOIN isco_classification AS IC
+    ON A.ISCO_Group_1D = CAST(IC.iscoID AS CHAR)
+ORDER BY ISCO_Group_Name;
 
